@@ -1,16 +1,10 @@
-"""
-Created on Thu Jun 26 14:17:38 2014
-updated 2015.01.27
-@author: Kyle Ellefsen
-"""
+
 from __future__ import (absolute_import, division,print_function, unicode_literals)
 import dependency_check
 from future.builtins import (bytes, dict, int, list, object, range, str, ascii, chr, hex, input, next, oct, open, pow, round, super, filter, map, zip)
 import time
 tic=time.time()
 import os, sys
-sys.path.insert(0, "C:/Users/Kyle Ellefsen/Documents/GitHub/pyqtgraph")
-sys.path.insert(0, "C:/Users/Medha/Documents/GitHub/pyqtgraph")
 import numpy as np
 from PyQt4.QtCore import * # Qt is Nokias GUI rendering code written in C++.  PyQt4 is a library in python which binds to Qt
 from PyQt4.QtGui import *
@@ -23,10 +17,10 @@ from collections import OrderedDict
 class RectSelector(pg.ROI):
 	def __init__(self, origin, size):
 		pg.ROI.__init__(self, origin, size)
-
+		self.setPen(QPen(QColor(255, 0, 0)))
 		## handles scaling horizontally around center
-		hand = self.addScaleHandle([1, 0.5], [0.5, 0.5])
-		self.addScaleHandle([0, 0.5], [0.5, 0.5])
+		self.addScaleHandle([1, 0.5], [0, 0.5])
+		self.addScaleHandle([0, 0.5], [1, 0.5])
 
 		## handles scaling vertically from opposite edge
 		self.addScaleHandle([0.5, 0], [0.5, 1])
@@ -36,64 +30,55 @@ class RectSelector(pg.ROI):
 		self.addScaleHandle([1, 1], [0, 0])
 		self.addScaleHandle([0, 0], [1, 1])
 
-class ROIRange(pg.LinearRegionItem):
-	sigRemoved = Signal(object)
-	def __init__(self, bounds = [0, 10]):
-		super(ROIRange, self).__init__(bounds)
-		self.id = 0
-		self.__name__ = "ROI Range %d" % self.id
-		self.lines[0].setPos = lambda pos : pg.InfiniteLine.setPos(self.lines[0], int(pos if isinstance(pos, (int, float)) else pos.x()))
-		self.lines[1].setPos = lambda pos : pg.InfiniteLine.setPos(self.lines[1], int(pos if isinstance(pos, (int, float)) else pos.x()))
-		self.setZValue(20)
-		self._make_menu()
+		self.polyPen = QPen(QColor(255, 0, 0))
+		self.polyPen.setStyle(Qt.DashLine)
+		self.polyPen.setDashOffset(5)
+		#g.m.currentTrace.p1.menu.addMenu(self.menu)
+		#self.sigRemoved.connect(lambda : g.m.currentTrace.rangeMenu.removeAction(self.menu.menuAction()))
+
+		self.polyPathItem = QGraphicsPathItem()
+		self.polyPathItem.setBrush(QColor(0, 100, 155, 100))
+		self.polyDataItem = pg.PlotDataItem(pen=self.polyPen)
+		self.fall_rise_points = pg.ScatterPlotItem()
+
+		self.polyPathItem.setParentItem(self)
+		self.polyDataItem.setParentItem(self)
+		self.fall_rise_points.setParentItem(self)
+		self.trace = None
 
 	def parentChanged(self):
-		if self.parentWidget() != None:
-			self.id = 1
-			while any([roi.id == self.id for roi in self.getViewBox().items() if isinstance(roi, ROIRange) and roi != self]):
-				self.id += 1
-			self.__name__ = "ROI Range %d" % self.id
-			self.menu.setTitle(self.__name__)
-		super(ROIRange, self).parentChanged()
+		if self.trace:
+			x, y = self.trace.getData()
+			self.setPos(.2 * max(x), max(0, min(y)))
+			self.setSize(len(x) // 1.5, max(y))
 
-	def _make_menu(self):
-		self.menu = QMenu(self.__name__)
-		setMenu = self.menu.addMenu("Set Range to...")
-		setMenu.addAction(QAction("&Average Value", self.menu, triggered=lambda : self.setTrace(np.average(self.getRegionTrace()[1]))))
-		setMenu.addAction(QAction("&Enter Value", self.menu, triggered=lambda : self.setTrace(getFloat(self, "Setting Range Value", "What value would you like to set the region to?"))))
-		self.menu.addAction(QAction("&Make Baseline", self.menu, triggered=lambda : self.setTrace(self.getTrace() / np.average(self.getRegionTrace()[1]), portion=False)))
-		self.menu.addAction(QAction("&Remove", self.menu, triggered=self.delete))
+	def getFrameRect(self):
+		origin = self.pos()
+		size = self.size()
+		return (origin[0], origin[1], origin[0] + size[0], origin[1] + size[1])
 
-	def contextMenuEvent(self, ev):
-		ev.accept()
-		self.menu.popup(ev.screenPos())
-
-	def delete(self):
-		self.parentItem().getViewBox().removeItem(self)
-		self.sigRemoved.emit(self)
-
-	def getRegionTrace(self):
-		t = self.getTrace()
-		x1, x2 = self.getRegion()
+	def getFrameTrace(self):
+		if not self.trace:
+			return None
+		t = self.trace.getData()[1]
+		x1, y1, x2, y2 = self.getFrameRect()
 		x1 = int(x1)
 		x1 = max(0, x1)
 		x2 = int(x2)
 		x2 = min(x2, len(t))
-		return (np.arange(x1, x2+1), t[x1:x2 + 1])
+		return (np.arange(0, x2+1 - x1), t[x1:x2 + 1])
 
-	def getTrace(self):
-		trace = [line for line in self.parentItem().getViewBox().addedItems if isinstance(line, pg.PlotDataItem)][0]
-		return np.copy(trace.getData()[1])
+	def setTrace(self, t):
+		self.trace = t
+		print(t)
 
-	def setTrace(self, val, portion=True):
-		trace = [line for line in self.parentItem().getViewBox().addedItems if isinstance(line, pg.PlotDataItem)][0]
-		x1, x2 = self.getRegion()
-		if portion:
-			t = trace.getData()[1]
-			t[x1:x2+1] = val
-		else:
-			t = val
-		trace.setData(y=t)
+	def getIntegral(self):
+		x1, y1, x2, y2 = self.getFrameRect()
+		y = self.getTrace()[x1:x2+1]
+		return np.trapz(y)
+
+traceRectROI = RectSelector([0, 0], [10, 10])
+
 
 def get_polyfit(x, y):
 	np.warnings.simplefilter('ignore', np.RankWarning)
