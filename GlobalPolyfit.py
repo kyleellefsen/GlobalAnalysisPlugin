@@ -79,10 +79,10 @@ class ROIRange(pg.LinearRegionItem):
 			t = val
 		trace.setData(y=t)
 
-	def getIntegral(self):
-		x1, x2 = self.getRegion()
-		y = self.getTrace()[x1:x2+1]
-		return np.trapz(y)
+def getIntegral(x, y):
+	x1, x2 = self.getRegion()
+	y = self.getTrace()[x1:x2+1]
+	return np.trapz(y)
 
 def get_polyfit(x, y):
 	np.warnings.simplefilter('ignore', np.RankWarning)
@@ -97,6 +97,7 @@ def analyze_trace(x, y, ftrace):
 	yRiseFall = getRiseFall(x, y)
 	ftraceRiseFall = getRiseFall(x, ftrace)
 	data.update(OrderedDict([(k, yRiseFall[k] + ftraceRiseFall[k]) for k in yRiseFall.keys()]))
+	data['area'] = (0, np.trapz(y - x[0]), 0, np.trapz(ftrace - x[0]))
 	return data
 
 def getRiseFall(x, y):
