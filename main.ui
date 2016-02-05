@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>165</width>
-    <height>110</height>
+    <width>360</width>
+    <height>506</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -17,64 +17,38 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>GroupBox</string>
+   <string>Global Analysis Toolbox</string>
   </property>
   <property name="title">
    <string>Global Analysis Tools</string>
   </property>
-  <widget class="QPushButton" name="autoROIButton">
-   <property name="geometry">
-    <rect>
-     <x>90</x>
-     <y>50</y>
-     <width>61</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Auto ROI</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="addPolyButton">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>20</y>
-     <width>141</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Add Polynomial Range</string>
-   </property>
-  </widget>
-  <widget class="QCheckBox" name="sliderCheck">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>50</y>
-     <width>71</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>LUT Slider</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="measureButton">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>80</y>
-     <width>81</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Measure Tool</string>
-   </property>
-  </widget>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="0" column="0">
+    <widget class="QCheckBox" name="traceROICheck">
+     <property name="text">
+      <string>Show Trace ROI</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="QPushButton" name="measureButton">
+     <property name="text">
+      <string>Measure Tool</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0" colspan="2">
+    <widget class="TableWidget" name="tableWidget"/>
+   </item>
+  </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>TableWidget</class>
+   <extends>QTableWidget</extends>
+   <header>pyqtgraph</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

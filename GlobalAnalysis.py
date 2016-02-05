@@ -8,12 +8,14 @@ from process.measure import measure
 
 def gui():
 	ui = uic.loadUi(os.path.join(os.getcwd(), 'plugins\\GlobalAnalysis\\main.ui'))
-	ui.addPolyButton.clicked.connect(add_polyfit_item)
-	ui.autoROIButton.clicked.connect(makeROIs)
+	ui.traceROICheck.toggled.connect(traceRectROI.setVisible)
+	QApplication.instance().focusChanged.connect(focusChange)
 	ui.measureButton.clicked.connect(measure.gui)
-	ui.sliderCheck.toggled.connect(setIsoVisible)
 	ui.show()
 	g.m.dialogs.append(ui)
+
+def focusChange(old, new):
+	print(old, new)
 
 def add_polyfit_item():
 	rangeItem = ROIRange()
@@ -63,7 +65,6 @@ def onRegionMove(region):
 	ftrace = get_polyfit(x, y)
 	data = analyze_trace(x, y, ftrace)
 	region.polyfit_item.setData(x=x, y=ftrace, pen=region.poly_pen)
-	integral = region.getIntegral()
 
 	pos = [data[k] for k in data.keys() if k.startswith('Rise, Fall')]
 	if len(pos) > 0:

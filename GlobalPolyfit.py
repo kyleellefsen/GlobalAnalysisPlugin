@@ -20,6 +20,22 @@ import pyqtgraph as pg
 import global_vars as g
 from collections import OrderedDict
 
+class RectSelector(pg.ROI):
+	def __init__(self, origin, size):
+		pg.ROI.__init__(self, origin, size)
+
+		## handles scaling horizontally around center
+		hand = self.addScaleHandle([1, 0.5], [0.5, 0.5])
+		self.addScaleHandle([0, 0.5], [0.5, 0.5])
+
+		## handles scaling vertically from opposite edge
+		self.addScaleHandle([0.5, 0], [0.5, 1])
+		self.addScaleHandle([0.5, 1], [0.5, 0])
+
+		## handles scaling both vertically and horizontally
+		self.addScaleHandle([1, 1], [0, 0])
+		self.addScaleHandle([0, 0], [1, 1])
+
 class ROIRange(pg.LinearRegionItem):
 	sigRemoved = Signal(object)
 	def __init__(self, bounds = [0, 10]):
@@ -79,16 +95,12 @@ class ROIRange(pg.LinearRegionItem):
 			t = val
 		trace.setData(y=t)
 
-def getIntegral(x, y):
-	x1, x2 = self.getRegion()
-	y = self.getTrace()[x1:x2+1]
-	return np.trapz(y)
-
 def get_polyfit(x, y):
 	np.warnings.simplefilter('ignore', np.RankWarning)
 	poly=np.poly1d(np.polyfit(x, y, 20))
 	ftrace=poly(x)
 	return ftrace
+	
 def analyze_trace(x, y, ftrace):
 	x_peak = np.argmax(y)
 	f_peak = np.argmax(ftrace)
