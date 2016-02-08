@@ -6,7 +6,7 @@ import time
 tic=time.time()
 import os, sys
 import numpy as np
-from PyQt4.QtCore import * # Qt is Nokias GUI rendering code written in C++.  PyQt4 is a library in python which binds to Qt
+from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from PyQt4.QtCore import pyqtSignal as Signal
 from pyqtgraph import plot, show
@@ -19,22 +19,61 @@ class RectSelector(pg.ROI):
 		pg.ROI.__init__(self, origin, size)
 		self.setPen(QPen(QColor(255, 0, 0)))
 		## handles scaling horizontally around center
-		self.addScaleHandle([1, 0.5], [0, 0.5])
-		self.addScaleHandle([0, 0.5], [1, 0.5])
-
+		self.leftHandle = self.addScaleHandle([1, 0.5], [0, 0.5])
+		self.rightHandle = self.addScaleHandle([0, 0.5], [1, 0.5])
+		
 		## handles scaling vertically from opposite edge
-		self.addScaleHandle([0.5, 0], [0.5, 1])
-		self.addScaleHandle([0.5, 1], [0.5, 0])
+		self.bottomHandle = self.addScaleHandle([0.5, 0], [0.5, 1])
+		self.topHandle = self.addScaleHandle([0.5, 1], [0.5, 0])
+
+		self.addPolyfill()
 
 		## handles scaling both vertically and horizontally
-		self.addScaleHandle([1, 1], [0, 0])
-		self.addScaleHandle([0, 0], [1, 1])
+		#self.addScaleHandle([1, 1], [0, 0])
+		#self.addScaleHandle([0, 0], [1, 1])
+		self.sigRegionChanged.connect(self.onTranslate)
+		self.buildHandlePaths()
 
+		self.traceLine = None
+
+	def setVisible(self, v):
+		pg.ROI.setVisible(self, v)
+		if g.m.currentTrace:
+			self.traceLine = g.m.currentTrace.rois[0]['p1trace']
+			x, y = self.traceLine.getData()
+			self.setPos([100, min(y)])
+			self.setSize([max(x) - 100, max(y)])
+
+	def onTranslate(self):
+		t = self.getFrameTrace()
+		if not t:
+			return
+		baseline = self.pos()[1]
+		x, y = t
+		ftrace = get_polyfit(x, y - baseline)
+		data = self.analyze_trace()
+		self.polyDataItem.setData(x=x, y=ftrace, pen=self.polyPen)
+
+		pos = [data[k] for k in data.keys() if k.startswith('Rise, Fall')]
+		if len(pos) > 0:
+			self.fall_rise_points.setData(pos=pos, pen=self.polyPen, symbolSize=4)
+		else:
+			self.fall_rise_points.clear()
+
+		path = QPainterPath()
+		path.moveTo(0, 0)
+		i = 0
+		for i in range(len(ftrace)):
+			path.lineTo(i, ftrace[i])
+		path.lineTo(i, 0)
+		path.lineTo(0, 0)
+		self.polyPathItem.setPath(path)
+		self.buildHandlePaths()
+
+	def addPolyfill(self):
 		self.polyPen = QPen(QColor(255, 0, 0))
 		self.polyPen.setStyle(Qt.DashLine)
 		self.polyPen.setDashOffset(5)
-		#g.m.currentTrace.p1.menu.addMenu(self.menu)
-		#self.sigRemoved.connect(lambda : g.m.currentTrace.rangeMenu.removeAction(self.menu.menuAction()))
 
 		self.polyPathItem = QGraphicsPathItem()
 		self.polyPathItem.setBrush(QColor(0, 100, 155, 100))
@@ -44,13 +83,36 @@ class RectSelector(pg.ROI):
 		self.polyPathItem.setParentItem(self)
 		self.polyDataItem.setParentItem(self)
 		self.fall_rise_points.setParentItem(self)
-		self.trace = None
 
-	def parentChanged(self):
-		if self.trace:
-			x, y = self.trace.getData()
-			self.setPos(.2 * max(x), max(0, min(y)))
-			self.setSize(len(x) // 1.5, max(y))
+	def buildHandlePaths(self):
+		w, h = self.size()
+		self.leftHandle.path = QPainterPath()
+		self.leftHandle.path.moveTo(0, -h/4)
+		self.leftHandle.path.lineTo(10, 0)
+		self.leftHandle.path.lineTo(0, h/4)
+		self.leftHandle.path.lineTo(0, -h/4)
+		self.leftHandle._shape = self.leftHandle.path
+
+		self.rightHandle.path = QPainterPath()
+		self.rightHandle.path.moveTo(0, -h/4)
+		self.rightHandle.path.lineTo(-10, 0)
+		self.rightHandle.path.lineTo(0, h/4)
+		self.rightHandle.path.lineTo(0, -h/4)
+		self.rightHandle._shape = self.rightHandle.path
+
+		self.bottomHandle.path = QPainterPath()
+		self.bottomHandle.path.moveTo(-w/4, 0)
+		self.bottomHandle.path.lineTo(0, -h / 15)
+		self.bottomHandle.path.lineTo(w/4, 0)
+		self.bottomHandle.path.lineTo(-w/4, 0)
+		self.bottomHandle._shape = self.bottomHandle.path
+
+		self.topHandle.path = QPainterPath()
+		self.topHandle.path.moveTo(-w/4, 0)
+		self.topHandle.path.lineTo(0, h / 15)
+		self.topHandle.path.lineTo(w/4, 0)
+		self.topHandle.path.lineTo(-w/4, 0)
+		self.topHandle._shape = self.topHandle.path
 
 	def getFrameRect(self):
 		origin = self.pos()
@@ -58,27 +120,44 @@ class RectSelector(pg.ROI):
 		return (origin[0], origin[1], origin[0] + size[0], origin[1] + size[1])
 
 	def getFrameTrace(self):
-		if not self.trace:
+		if not self.traceLine:
 			return None
-		t = self.trace.getData()[1]
+		t = self.traceLine.getData()[1]
 		x1, y1, x2, y2 = self.getFrameRect()
 		x1 = int(x1)
 		x1 = max(0, x1)
 		x2 = int(x2)
 		x2 = min(x2, len(t))
-		return (np.arange(0, x2+1 - x1), t[x1:x2 + 1])
+		t = t[x1:x2 + 1]
+		t[t < y1] = y1
+		return (np.arange(0, x2+1 - x1), t[:])
 
 	def setTrace(self, t):
-		self.trace = t
-		print(t)
+		self.traceLine = t
 
 	def getIntegral(self):
 		x1, y1, x2, y2 = self.getFrameRect()
 		y = self.getTrace()[x1:x2+1]
 		return np.trapz(y)
 
-traceRectROI = RectSelector([0, 0], [10, 10])
+	def analyze_trace(self):
+		pos = self.pos()
+		size = self.size()
+		x, y = self.getFrameTrace()
+		ftrace = get_polyfit(x, y)
+		x_peak = np.argmax(y)
+		f_peak = np.argmax(ftrace)
+		data = OrderedDict([('Baseline', (pos[0], pos[1], pos[0], pos[1])), \
+							('Peak', (x_peak + pos[0], y[x_peak], f_peak + pos[0], ftrace[f_peak])),\
+							('Delta Peak', (x_peak, y[x_peak]-pos[1], f_peak, ftrace[f_peak] - pos[1]))])
+		yRiseFall = getRiseFall(x, y)
+		ftraceRiseFall = getRiseFall(x, ftrace)
+		data.update(OrderedDict([(k, yRiseFall[k] + ftraceRiseFall[k]) for k in yRiseFall.keys()]))
+		data['area'] = (0, np.trapz(y), 0, np.trapz(ftrace))
+		return data
 
+traceRectROI = RectSelector([0, 0], [10, 10])
+traceRectROI.setVisible(False)
 
 def get_polyfit(x, y):
 	np.warnings.simplefilter('ignore', np.RankWarning)
@@ -86,17 +165,6 @@ def get_polyfit(x, y):
 	ftrace=poly(x)
 	return ftrace
 	
-def analyze_trace(x, y, ftrace):
-	x_peak = np.argmax(y)
-	f_peak = np.argmax(ftrace)
-	data = OrderedDict([('Baseline', (x[0], y[0], x[0], ftrace[0])), ('Peak', (x_peak + x[0], y[x_peak], f_peak + x[0], ftrace[f_peak])),\
-		('Delta Peak', (x_peak, y[x_peak]-y[0], f_peak, ftrace[f_peak] - ftrace[0]))])
-	yRiseFall = getRiseFall(x, y)
-	ftraceRiseFall = getRiseFall(x, ftrace)
-	data.update(OrderedDict([(k, yRiseFall[k] + ftraceRiseFall[k]) for k in yRiseFall.keys()]))
-	data['area'] = (0, np.trapz(y - x[0]), 0, np.trapz(ftrace - x[0]))
-	return data
-
 def getRiseFall(x, y):
 	x_peak = np.where(y == max(y))[0][0]
 	baseline = (x[0], y[0])
@@ -122,20 +190,7 @@ def getRiseFall(x, y):
 		tmp=np.squeeze(np.argwhere(y<thresh20))
 		data['Fall 20%'] = [tmp[tmp>data['Fall 50%'][0]][0], thresh20]
 	except Exception as e:
-		print("Analysis Failed: %s" % e)
+		pass
+		#print("Analysis Failed: %s" % e)
 	return data
 
-def makePolyPath(x, ftrace, baseline):
-	poly_path = QPainterPath(QPointF(x[0], baseline))
-	for pt in zip(x, ftrace):
-		poly_path.lineTo(pt[0], pt[1])
-	poly_path.lineTo(x[-1], baseline)
-	poly_path.closeSubpath()
-	return poly_path
-
-def replaceRange(im, region, val):
-	x1, x2 = region
-	x1 = max(0, x1)
-	x2 = min(x2, len(im))
-	im[x1:x2 + 1] = val
-	return im
