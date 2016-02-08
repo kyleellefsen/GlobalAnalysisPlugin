@@ -45,7 +45,7 @@ def toggleVisible(v):
 def buildComboBox():
 	analysisUI.traceComboBox.updating = True
 	analysisUI.traceComboBox.clear()
-	analysisUI.traceWindows = []
+	analysisUI.all_rois = []
 	for traceWindow in g.m.traceWindows:
 		analysisUI.all_rois.extend(traceWindow.rois)
 	if len(analysisUI.all_rois) == 0:
