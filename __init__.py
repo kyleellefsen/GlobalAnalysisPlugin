@@ -1,4 +1,4 @@
-{'name': 'Global Analysis'
+{'name': 'Global Analysis',
 'base_dir': 'GlobalAnalysis',
 'author': 'Brett Settle',
 'description':'Analyze the fall and rise times of ROIs by fitting the average trace to a polynomial',
