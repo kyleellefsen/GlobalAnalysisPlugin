@@ -13,6 +13,7 @@ from pyqtgraph import plot, show
 import pyqtgraph as pg
 import global_vars as g
 from collections import OrderedDict
+import traceback
 
 class RectSelector(pg.ROI):
 	def __init__(self, origin, size):
@@ -61,7 +62,8 @@ class RectSelector(pg.ROI):
 	def redraw(self):
 		baseline = self.pos()[1]
 		x, y = self.getFrameTrace()
-		ftrace = get_polyfit(x, y - baseline)
+		y -= baseline
+		ftrace = get_polyfit(x, y)
 		self.analyze_trace(x, y, ftrace)
 		
 		self.polyDataItem.setData(x=x, y=ftrace, pen=self.polyPen, fillBrush=QColor(0, 100, 155, 100), fillLevel=0)
@@ -121,7 +123,7 @@ class RectSelector(pg.ROI):
 		yRiseFall = getRiseFall(x, y)
 		ftraceRiseFall = getRiseFall(x, ftrace)
 		self.data.update(OrderedDict([(k, yRiseFall[k] + ftraceRiseFall[k]) for k in yRiseFall.keys()]))
-		self.data['area'] = (0, np.trapz(y - self.baseline()), 0, np.trapz(ftrace))
+		self.data['area'] = (0, np.trapz(y), 0, np.trapz(ftrace))
 
 def get_polyfit(x, y):
 	np.warnings.simplefilter('ignore', np.RankWarning)
@@ -131,8 +133,8 @@ def get_polyfit(x, y):
 	
 def getRiseFall(x, y):
 	x_peak = np.where(y == max(y))[0][0]
-	baseline = traceRectROI.baseline()
-	dPeak = (x_peak, y[x_peak]-y[0])
+	baseline = y[0]
+	dPeak = (x_peak, y[x_peak]-baseline)
 
 	data = OrderedDict([('Rise 20%', [-1, -1]),
 		('Rise 50%', [-1, -1]), ('Rise 80%', [-1, -1]),
@@ -155,8 +157,7 @@ def getRiseFall(x, y):
 		tmp=np.squeeze(np.argwhere(y<thresh20))
 		data['Fall 20%'] = [tmp[tmp>data['Fall 50%'][0]][0], thresh20]
 	except Exception as e:
-		pass
-		#print("Analysis Failed: %s" % e)
+		print("Analysis Failed: %s" % traceback.format_exc())
 	return data
 
 traceRectROI = RectSelector([0, 0], [10, 10])
