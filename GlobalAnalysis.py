@@ -22,7 +22,7 @@ def gui():
 		analysisUI.tableWidget.setFormat("%.3f")
 		analysisUI.traceComboBox.mousePressEvent = comboBoxClicked
 		analysisUI.logButton.clicked.connect(logData)
-		analysisUI.saveButton.clicked.connect(lambda : save_file_gui(saveLoggedData, "Save Logged Ploynomial Fit Data", "*.txt"))
+		analysisUI.saveButton.clicked.connect(lambda : save_file_gui(saveLoggedData, prompt="Save Logged Ploynomial Fit Data", filetypes="*.txt"))
 		g.m.dialogs.append(analysisUI)
 		analysisUI.traceComboBox.updating = False
 		analysisUI.all_rois = []
@@ -41,6 +41,7 @@ def logData():
 	global log_data
 	for name, vals in traceRectROI.data.items():
 		log_data += "%s\t%s\n" % (name, '\t'.join([str(i) for i in vals]))
+	log_data += "\n"
 
 def indexChanged(i=0):
 	if analysisUI.traceComboBox.updating or i == -1 or i >= len(analysisUI.all_rois):
