@@ -47,6 +47,7 @@ def indexChanged(i=0):
 	if analysisUI.traceComboBox.updating or i == -1 or i >= len(analysisUI.all_rois):
 		return
 	traceRectROI.setTrace(analysisUI.all_rois[i]['p1trace'])
+	fillDataTable()
 
 def closeEvent(ev):
 	if g.m.currentTrace != None:
