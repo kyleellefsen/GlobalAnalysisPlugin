@@ -70,6 +70,10 @@ class RectSelector(pg.ROI):
 		self.polyPen = QPen(QColor(255, 0, 0))
 		self.polyPen.setStyle(Qt.DashLine)
 		self.polyPen.setDashOffset(5)
+<<<<<<< HEAD
+=======
+		self.polyPen.setWidth(1.3)
+>>>>>>> origin/master
 		self.polyDataItem = pg.PlotDataItem(pen=self.polyPen)
 		self.polyDataItem.setParentItem(self)
 
@@ -93,11 +97,20 @@ class RectSelector(pg.ROI):
 		return (np.arange(0, x2+1 - x1), t)
 
 	def setTrace(self, t):
+<<<<<<< HEAD
 		if t == None:
 			return
 		if self.parentWidget() != None:
 			self.parentWidget().removeItem(self)
 		t.parentWidget().addItem(self)
+=======
+		if self.traceLine == t:
+			return
+		if self.parentWidget() != t.parentWidget():
+			if self.parentWidget() != None:
+				self.parentWidget().removeItem(self)
+			t.parentWidget().addItem(self)
+>>>>>>> origin/master
 		self.traceLine = t
 		self.onTranslate()
 
