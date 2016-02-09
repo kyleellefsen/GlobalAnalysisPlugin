@@ -5,66 +5,89 @@ from plugins.GlobalAnalysis.GlobalPolyfit import *
 from window import Window
 from roi import ROI
 from process.measure import measure
+from process.file_ import save_file_gui
 from trace import TraceFig
 
 analysisUI = None
+log_data = ''
 
 def gui():
-	global analysisUI
+	global analysisUI, log_data
 	if analysisUI == None:
 		analysisUI = uic.loadUi(os.path.join(os.getcwd(), 'plugins\\GlobalAnalysis\\main.ui'))
 		analysisUI.traceROICheck.toggled.connect(toggleVisible)
 		traceRectROI.sigRegionChanged.connect(fillDataTable)
-		QApplication.instance().focusChanged.connect(focusChange)
 		analysisUI.measureButton.clicked.connect(measure.gui)
 		analysisUI.closeEvent = closeEvent
+		analysisUI.tableWidget.setFormat("%.3f")
+		analysisUI.traceComboBox.mousePressEvent = comboBoxClicked
+		analysisUI.logButton.clicked.connect(logData)
+		analysisUI.saveButton.clicked.connect(lambda : save_file_gui(saveLoggedData, "Save Logged Ploynomial Fit Data", "*.txt"))
 		g.m.dialogs.append(analysisUI)
+		analysisUI.traceComboBox.updating = False
+		analysisUI.all_rois = []
+		analysisUI.traceComboBox.currentIndexChanged.connect(indexChanged)
+	log_data = ''
 	analysisUI.show()
+
+def saveLoggedData(fname):
+	global log_data
+	with open(fname, 'w') as outf:
+		outf.write("Value\tFrame\tY\tFtrace Frame\tFtrace Y\n")
+		outf.write(log_data)
+	log_data = ''
+
+def logData():
+	global log_data
+	for name, vals in traceRectROI.data.items():
+		log_data += "%s\t%s\n" % (name, '\t'.join([str(i) for i in vals]))
+
+def indexChanged(i=0):
+	if analysisUI.traceComboBox.updating or i == -1 or i >= len(analysisUI.all_rois):
+		return
+	traceRectROI.setTrace(analysisUI.all_rois[i]['p1trace'])
 
 def closeEvent(ev):
 	if g.m.currentTrace != None:
 		g.m.currentTrace.p1.removeItem(traceRectROI)
-	#traceRectROI.parentItem().removeItem(traceRectROI)
 	ev.accept()
 
 def toggleVisible(v):
-	traceRectROI.setVisible(v)
-	if g.m.currentTrace != None:
-		g.m.currentTrace.p1.addItem(traceRectROI)
 	buildComboBox()
+	traceRectROI.setVisible(v)
+	indexChanged()
+	if not v:
+		analysisUI.tableWidget.clear()
+	else:
+		fillDataTable()
 
 def buildComboBox():
+	analysisUI.traceComboBox.updating = True
 	analysisUI.traceComboBox.clear()
-	if not g.m.currentTrace or len(g.m.currentTrace.rois) == 0:
+	analysisUI.all_rois = []
+	for traceWindow in g.m.traceWindows:
+		analysisUI.all_rois.extend(traceWindow.rois)
+	if len(analysisUI.all_rois) == 0:
 		analysisUI.traceComboBox.addItem("No Trace Selected")
-		return
-	model = analysisUI.traceComboBox.model()
-	traceRectROI.traces = [None]
-	for i, roiLine in enumerate(g.m.currentTrace.rois):
-		traceRectROI.traces.append(roiLine['p1trace'])
-		item = QStandardItem("ROI #%d" % (i + 1))
-		item.setBackground(roiLine['roi'].color)
-		model.appendRow(item)
-		if roiLine['p1trace'] == traceRectROI.traces[i]:
-			traceComboBox.setSelectedItem(i)
-	analysisUI.traceComboBox.currentIndexChanged.connect(lambda v: traceRectROI.setTrace(traceRectROI.traces[v]))
+	else:
+		model = analysisUI.traceComboBox.model()
+		for i, roiLine in enumerate(analysisUI.all_rois):
+			item = QStandardItem("ROI #%d" % (i + 1))
+			item.setBackground(roiLine['roi'].color)
+			model.appendRow(item)
+			if roiLine['p1trace'] == traceRectROI.traceLine:
+				analysisUI.traceComboBox.setCurrentIndex(i)
+	analysisUI.traceComboBox.updating = False
 
-def focusChange(old, new):
-	if new != None and isinstance(new.window(), TraceFig) and new != g.m.currentTrace:
-		if old != None and isinstance(old, TraceFig):
-			old.window().p1.removeItem(traceRectROI)
-		if traceRectROI not in new.window().p1.getPlotItem().listDataItems():
-			new.window().p1.addItem(traceRectROI)
+def comboBoxClicked(ev):
+	buildComboBox()
+	QComboBox.mousePressEvent(analysisUI.traceComboBox, ev)
 
 def fillDataTable():
 	''' when the region moves, recalculate the polyfit
 	data and plot/show it in the table and graph accordingly'''
-	t = traceRectROI.getFrameTrace()
-	if not t:
+	if not traceRectROI.traceLine:
 		return
-	x, y = t
-	ftrace = get_polyfit(x, y)
-	data = traceRectROI.analyze_trace()
-	analysisUI.tableWidget.setData(data)
+	analysisUI.tableWidget.setData(traceRectROI.data)
 	analysisUI.tableWidget.setHorizontalHeaderLabels(['Frames', 'Y', 'Ftrace Frames', 'Ftrace Y'])
 	
