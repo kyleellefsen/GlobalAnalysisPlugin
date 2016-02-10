@@ -25,6 +25,6 @@
 				<action location="loc3.5" function="f3.5">Action Here</action>
 			</menu>
 		</menu>
-		<action location="loc4" function="f4">Action 4</action>
+		<action location="GlobalAnalysis" function="gui">Global Analysis Toolbox</action>
 	</menu_layout>
 </plugin>
