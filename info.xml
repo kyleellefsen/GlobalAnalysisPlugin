@@ -15,16 +15,6 @@
 		http://github.com/BrettJSettle/GlobalAnalysisPlugin/archive/master.zip
 	</url>
 	<menu_layout>
-		<menu name="Menu 1">
-			<action location="loc1" function="f1">Action 1</action>
-			<action location="loc2" function="f2">Action 2</action>
-		</menu>
-		<menu name="Menu 2">
-			<action location="loc3" function="f3">Action3</action>
-			<menu name="Submenu">
-				<action location="loc3.5" function="f3.5">Action Here</action>
-			</menu>
-		</menu>
 		<action location="GlobalAnalysis" function="gui">Global Analysis Toolbox</action>
 	</menu_layout>
 </plugin>
