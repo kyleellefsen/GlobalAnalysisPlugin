@@ -1,6 +1,6 @@
 <plugin name="Global Analysis">
 	<base_dir>
-		GlobalAnalysis>
+		GlobalAnalysis
 	</base_dir>
 	<date>
 		02/10/2016
