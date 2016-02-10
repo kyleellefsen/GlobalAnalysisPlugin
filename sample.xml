@@ -1,0 +1,26 @@
+<plugin name="Global Analysis">
+	<base_dir>
+		GlobalAnalysis>
+	</base_dir>
+	<date>
+		02/10/2016
+	</date>
+	<author>
+		Brett Settle
+	</author>
+	<description>
+		Analyze the fall and rise times of ROIs by fitting the average trace to a polynomial
+	</description>
+	<url>
+		http://github.com/BrettJSettle/GlobalAnalysisPlugin/archive/master.zip
+	</url>
+	<dependencies>
+		<!--dependency name="numpy"></dependency-->
+	</dependencies>
+	<menu_layout>
+		<menu name="">
+			<action location="GlobalAnalysis" function="gui">Show Global Toolbox</action>
+			<action location="GlobalAnalysis" function="gui">Show Global Toolbox</action>
+		</menu>
+	</menu_layout>
+</plugin>
