@@ -157,7 +157,8 @@ def getRiseFall(x, y):
 		tmp=np.squeeze(np.argwhere(y<thresh20))
 		data['Fall 20%'] = [tmp[tmp>data['Fall 50%'][0]][0], thresh20]
 	except Exception as e:
-		print("Analysis Failed: %s" % traceback.format_exc())
+		pass
+		#print("Analysis Failed: %s" % traceback.format_exc())
 	return data
 
 traceRectROI = RectSelector([0, 0], [10, 10])
