@@ -33,7 +33,7 @@ def gui():
 def saveLoggedData(fname):
 	global log_data
 	with open(fname, 'w') as outf:
-		outf.write("Value\tFrame\tY\tFtrace Frame\tFtrace Y\n")
+		outf.write("Value\tFtrace Frame\tFtrace Y\n")
 		outf.write(log_data)
 	log_data = ''
 
@@ -50,8 +50,10 @@ def indexChanged(i=0):
 	fillDataTable()
 
 def closeEvent(ev):
-	if g.m.currentTrace != None:
-		g.m.currentTrace.p1.removeItem(traceRectROI)
+	try:
+		traceRectROI.scene().removeItem(traceRectROI)
+	except:
+		pass
 	ev.accept()
 
 def toggleVisible(v):
@@ -91,5 +93,5 @@ def fillDataTable():
 	if not traceRectROI.traceLine:
 		return
 	analysisUI.tableWidget.setData(traceRectROI.data)
-	analysisUI.tableWidget.setHorizontalHeaderLabels(['Frames', 'Y', 'Ftrace Frames', 'Ftrace Y'])
+	analysisUI.tableWidget.setHorizontalHeaderLabels(['Ftrace Frames', 'Ftrace Y'])
 	

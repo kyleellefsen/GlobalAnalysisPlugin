@@ -89,8 +89,8 @@ class RectSelector(pg.ROI):
 			return None
 		t = np.copy(self.traceLine.getData()[1])
 		x1, y1, x2, y2 = self.getFrameRect()
-		x1 = max(0, int(x1))
-		x2 = min(int(x2), len(t))
+		x1 = max(0, round(x1))
+		x2 = min(round(x2), len(t))
 		t = t[x1:x2 + 1]
 		return (np.arange(0, x2+1 - x1), t)
 
@@ -117,12 +117,12 @@ class RectSelector(pg.ROI):
 		size = self.size()
 		x_peak = np.argmax(y)
 		f_peak = np.argmax(ftrace)
-		self.data = OrderedDict([('Baseline', (pos[0], pos[1], pos[0], pos[1])), \
-							('Peak', (x_peak + pos[0], y[x_peak], f_peak + pos[0], ftrace[f_peak])),\
-							('Delta Peak', (x_peak, y[x_peak]-pos[1], f_peak, ftrace[f_peak] - pos[1]))])
-		yRiseFall = getRiseFall(x, y)
+		self.data = OrderedDict([('Baseline', (pos[0], pos[1])), \
+							('Peak', (f_peak + pos[0], ftrace[f_peak])),\
+							('Delta Peak', (f_peak, ftrace[f_peak] - pos[1]))])
+		#yRiseFall = getRiseFall(x, y)
 		ftraceRiseFall = getRiseFall(x, ftrace)
-		self.data.update(OrderedDict([(k, yRiseFall[k] + ftraceRiseFall[k]) for k in yRiseFall.keys()]))
+		self.data.update(OrderedDict([(k, ftraceRiseFall[k]) for k in ftraceRiseFall.keys()]))
 		self.data['area'] = (0, np.trapz(y), 0, np.trapz(ftrace))
 
 def get_polyfit(x, y):
@@ -157,7 +157,8 @@ def getRiseFall(x, y):
 		tmp=np.squeeze(np.argwhere(y<thresh20))
 		data['Fall 20%'] = [tmp[tmp>data['Fall 50%'][0]][0], thresh20]
 	except Exception as e:
-		print("Analysis Failed: %s" % traceback.format_exc())
+		pass
+		#print("Analysis Failed: %s" % traceback.format_exc())
 	return data
 
 traceRectROI = RectSelector([0, 0], [10, 10])
