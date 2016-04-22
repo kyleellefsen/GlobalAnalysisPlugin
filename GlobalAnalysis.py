@@ -17,6 +17,7 @@ def gui():
 		analysisUI = uic.loadUi(os.path.join(os.getcwd(), 'plugins\\GlobalAnalysis\\main.ui'))
 		analysisUI.traceROICheck.toggled.connect(toggleVisible)
 		traceRectROI.sigRegionChanged.connect(fillDataTable)
+		traceRectROI.mouseClickEvent = clickEvent
 		analysisUI.measureButton.clicked.connect(measure.gui)
 		analysisUI.closeEvent = closeEvent
 		analysisUI.tableWidget.setFormat("%.3f")
@@ -29,6 +30,17 @@ def gui():
 		analysisUI.traceComboBox.currentIndexChanged.connect(indexChanged)
 	log_data = ''
 	analysisUI.show()
+
+class PseudoClick():
+	def __init__(self, pos):
+		self._pos = pos
+	def pos(self):
+		return self._pos
+
+def clickEvent(ev):
+	pos = ev.pos()
+	pos = traceRectROI.mapToView(pos)
+	measure.pointclicked(PseudoClick(pos), overwrite=True)
 
 def saveLoggedData(fname):
 	global log_data
