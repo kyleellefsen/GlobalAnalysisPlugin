@@ -6,7 +6,7 @@ from window import Window
 from roi import ROI
 from process.measure import measure
 from process.file_ import save_file_gui
-from trace import TraceFig
+from tracefig import TraceFig
 
 analysisUI = None
 log_data = ''
