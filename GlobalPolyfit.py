@@ -16,7 +16,7 @@ import traceback
 
 class RectSelector(pg.ROI):
 	def __init__(self, origin, size):
-		pg.ROI.__init__(self, origin, size)
+		pg.ROI.__init__(self, origin, size, translateSnap=True, scaleSnap=True)
 		self.setPen(QPen(QColor(255, 0, 0)))
 		## handles scaling horizontally around center
 		leftHandle = self.addScaleHandle([1, 0.5], [0, 0.5])
@@ -34,6 +34,7 @@ class RectSelector(pg.ROI):
 		self.addPolyfill()
 
 		self.traceLine = None
+
 
 	def setVisible(self, v):
 		pg.ROI.setVisible(self, v)
@@ -81,7 +82,7 @@ class RectSelector(pg.ROI):
 		size = self.size()
 		if self.traceLine and origin[0] + size[0] > max(self.traceLine.getData()[0]):
 			size[1] = max(self.traceLine.getData()[0]) - origin[0]
-		return (origin[0], origin[1], origin[0] + size[0], origin[1] + size[1])
+		return np.array([origin[0], origin[1], origin[0] + size[0], origin[1] + size[1]], int)
 
 	def getFrameTrace(self):
 		if not self.traceLine:
