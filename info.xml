@@ -1,7 +1,7 @@
 <plugin name="Global Analysis">
-	<base_dir>
+	<directory>
 		GlobalAnalysis
-	</base_dir>
+	</directory>
 	<version>
 		0.0.1
 	</version>
