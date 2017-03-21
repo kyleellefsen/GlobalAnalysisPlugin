@@ -4,7 +4,7 @@ import os, sys
 import numpy as np
 from qtpy.QtCore import *
 from qtpy.QtGui import *
-from qtpy.QtCore import pyqtSignal as Signal
+from qtpy.QtCore import Signal
 from qtpy.QtWidgets import *
 from pyqtgraph import plot, show
 import pyqtgraph as pg
