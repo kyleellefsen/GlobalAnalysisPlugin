@@ -1,16 +1,14 @@
-
-from __future__ import (absolute_import, division,print_function, unicode_literals)
-from future.builtins import (bytes, dict, int, list, object, range, str, ascii, chr, hex, input, next, oct, open, pow, round, super, filter, map, zip)
 import time
 tic=time.time()
 import os, sys
 import numpy as np
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-from PyQt4.QtCore import pyqtSignal as Signal
+from qtpy.QtCore import *
+from qtpy.QtGui import *
+from qtpy.QtCore import pyqtSignal as Signal
+from qtpy.QtWidgets import *
 from pyqtgraph import plot, show
 import pyqtgraph as pg
-import global_vars as g
+import flika.global_vars as g
 from collections import OrderedDict
 import traceback
 

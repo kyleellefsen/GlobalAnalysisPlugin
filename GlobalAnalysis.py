@@ -1,12 +1,12 @@
-from PyQt4 import uic
-import global_vars as g
+from qtpy import uic
+import flika.global_vars as g
 import pyqtgraph as pg
-from plugins.GlobalAnalysis.GlobalPolyfit import *
-from window import Window
-from roi import ROI
-from process.measure import measure
-from process.file_ import save_file_gui
-from tracefig import TraceFig
+from GlobalAnalysis.GlobalPolyfit import *
+from flika.window import Window
+from flika.roi import ROI
+from flika.process.measure import measure
+from flika.process.file_ import save_file_gui
+from flika.tracefig import TraceFig
 
 analysisUI = None
 log_data = ''
