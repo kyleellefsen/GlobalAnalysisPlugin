@@ -14,7 +14,7 @@ log_data = ''
 def gui():
 	global analysisUI, log_data
 	if analysisUI == None:
-		analysisUI = uic.loadUi(os.path.join(__file__, 'main.ui'))
+		analysisUI = uic.loadUi(os.path.join(os.path.dirname(__file__), 'main.ui'))
 		analysisUI.traceROICheck.toggled.connect(toggleVisible)
 		traceRectROI.sigRegionChanged.connect(fillDataTable)
 		traceRectROI.mouseClickEvent = clickEvent
