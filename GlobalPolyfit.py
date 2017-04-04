@@ -15,7 +15,7 @@ import traceback
 class RectSelector(pg.ROI):
 	def __init__(self, origin, size):
 		pg.ROI.__init__(self, origin, size, translateSnap=True, scaleSnap=True)
-		self.setPen(QPen(QColor(255, 0, 0)))
+		self.setPen(QPen(QColor(255, 0, 0), 0))
 		## handles scaling horizontally around center
 		leftHandle = self.addScaleHandle([1, 0.5], [0, 0.5])
 		rightHandle = self.addScaleHandle([0, 0.5], [1, 0.5])
@@ -67,7 +67,7 @@ class RectSelector(pg.ROI):
 		self.polyDataItem.setData(x=x, y=ftrace, pen=self.polyPen, fillBrush=QColor(0, 100, 155, 100), fillLevel=0)
 
 	def addPolyfill(self):
-		self.polyPen = QPen(QColor(255, 0, 0))
+		self.polyPen = QPen(QColor(255, 0, 0), 0)
 		self.polyPen.setStyle(Qt.DashLine)
 		self.polyPen.setDashOffset(5)
 		self.polyDataItem = pg.PlotDataItem(pen=self.polyPen)

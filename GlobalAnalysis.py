@@ -3,7 +3,7 @@ import flika.global_vars as g
 import pyqtgraph as pg
 from GlobalAnalysis.GlobalPolyfit import *
 from flika.window import Window
-from flika.roi import ROI
+from flika.roi import *
 from flika.process.measure import measure
 from flika.process.file_ import save_file_gui
 from flika.tracefig import TraceFig
@@ -17,20 +17,23 @@ def gui():
 		analysisUI = uic.loadUi(os.path.join(os.path.dirname(__file__), 'main.ui'))
 		analysisUI.traceROICheck.toggled.connect(toggleVisible)
 		traceRectROI.sigRegionChanged.connect(fillDataTable)
-		traceRectROI.mouseClickEvent = clickEvent
 		analysisUI.measureButton.clicked.connect(measure.gui)
 		analysisUI.closeEvent = closeEvent
 		analysisUI.tableWidget.setFormat("%.3f")
 		analysisUI.traceComboBox.mousePressEvent = comboBoxClicked
 		analysisUI.logButton.clicked.connect(logData)
-		analysisUI.saveButton.clicked.connect(lambda : save_file_gui(saveLoggedData, prompt="Save Logged Ploynomial Fit Data", filetypes="*.txt"))
+		def saveLogData():
+			f = save_file_gui("Save Logged Ploynomial Fit Data", filetypes="*.txt")
+			if f:
+				saveLoggedData(f)
+		analysisUI.saveButton.clicked.connect(saveLogData)
 		g.m.dialogs.append(analysisUI)
 		analysisUI.traceComboBox.updating = False
 		analysisUI.all_rois = []
 		analysisUI.traceComboBox.currentIndexChanged.connect(indexChanged)
 	log_data = ''
 	analysisUI.show()
-
+'''
 class PseudoClick():
 	def __init__(self, pos):
 		self._pos = pos
@@ -41,7 +44,7 @@ def clickEvent(ev):
 	pos = ev.pos()
 	pos = traceRectROI.mapToView(pos)
 	measure.pointclicked(PseudoClick(pos), overwrite=True)
-
+'''
 def saveLoggedData(fname):
 	global log_data
 	with open(fname, 'w') as outf:
@@ -89,11 +92,15 @@ def buildComboBox():
 		model = analysisUI.traceComboBox.model()
 		for i, roiLine in enumerate(analysisUI.all_rois):
 			item = QStandardItem("ROI #%d" % (i + 1))
-			item.setBackground(roiLine['roi'].color)
+			item.setBackground(roiLine['roi'].pen.color())
 			model.appendRow(item)
 			if roiLine['p1trace'] == traceRectROI.traceLine:
 				analysisUI.traceComboBox.setCurrentIndex(i)
+
 	analysisUI.traceComboBox.updating = False
+	if len(analysisUI.all_rois) > 0:
+		indexChanged()
+
 
 def comboBoxClicked(ev):
 	buildComboBox()
