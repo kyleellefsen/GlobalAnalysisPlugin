@@ -74,6 +74,9 @@ def closeEvent(ev):
 def toggleVisible(v):
 	buildComboBox()
 	traceRectROI.setVisible(v)
+	ymax = 1
+	traceRectROI.setSize(100, ymax)
+
 	indexChanged()
 	if not v:
 		analysisUI.tableWidget.clear()
