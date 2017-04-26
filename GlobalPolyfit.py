@@ -53,6 +53,8 @@ class RectSelector(pg.ROI):
 		w, h = self.size()
 		frames = len(self.traceLine.getData()[1])
 		if x + w >= frames:
+			if frames - x - 1 <= 0:
+				return
 			self.setSize([frames - x - 1, h])
 			return
 		self.redraw()
@@ -98,7 +100,7 @@ class RectSelector(pg.ROI):
 		if self.parentWidget() != None:
 			self.parentWidget().removeItem(self)
 		t.parentWidget().addItem(self)
-
+		
 		self.traceLine = t
 		self.onTranslate()
 

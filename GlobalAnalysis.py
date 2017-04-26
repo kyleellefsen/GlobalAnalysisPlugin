@@ -12,7 +12,8 @@ analysisUI = None
 log_data = ''
 
 def gui():
-	global analysisUI, log_data
+	global analysisUI, log_data, traceRectROI
+	traceRectROI = RectSelector([0, 0], [10, 10])
 	if analysisUI == None:
 		analysisUI = uic.loadUi(os.path.join(os.path.dirname(__file__), 'main.ui'))
 		analysisUI.traceROICheck.toggled.connect(toggleVisible)
@@ -20,6 +21,7 @@ def gui():
 		analysisUI.measureButton.clicked.connect(measure.gui)
 		analysisUI.closeEvent = closeEvent
 		analysisUI.tableWidget.setFormat("%.3f")
+		analysisUI.tableWidget.setSortingEnabled(False)
 		analysisUI.traceComboBox.mousePressEvent = comboBoxClicked
 		analysisUI.logButton.clicked.connect(logData)
 		def saveLogData():
@@ -33,18 +35,7 @@ def gui():
 		analysisUI.traceComboBox.currentIndexChanged.connect(indexChanged)
 	log_data = ''
 	analysisUI.show()
-'''
-class PseudoClick():
-	def __init__(self, pos):
-		self._pos = pos
-	def pos(self):
-		return self._pos
 
-def clickEvent(ev):
-	pos = ev.pos()
-	pos = traceRectROI.mapToView(pos)
-	measure.pointclicked(PseudoClick(pos), overwrite=True)
-'''
 def saveLoggedData(fname):
 	global log_data
 	with open(fname, 'w') as outf:
@@ -61,6 +52,8 @@ def logData():
 def indexChanged(i=0):
 	if analysisUI.traceComboBox.updating or i == -1 or i >= len(analysisUI.all_rois):
 		return
+
+	roi = analysisUI.all_rois[i]['roi']
 	traceRectROI.setTrace(analysisUI.all_rois[i]['p1trace'])
 	fillDataTable()
 
@@ -72,10 +65,12 @@ def closeEvent(ev):
 	ev.accept()
 
 def toggleVisible(v):
+	#traceWindow.partialThreadUpdatedSignal.connect(buildComboBox)
 	buildComboBox()
 	traceRectROI.setVisible(v)
 	ymax = 1
-	traceRectROI.setSize(100, ymax)
+	traceRectROI.setPos((0, 0))
+	traceRectROI.setSize((100, ymax))
 
 	indexChanged()
 	if not v:
@@ -84,6 +79,7 @@ def toggleVisible(v):
 		fillDataTable()
 
 def buildComboBox():
+	analysisUI.traceComboBox.blockSignals(True)
 	analysisUI.traceComboBox.updating = True
 	analysisUI.traceComboBox.clear()
 	analysisUI.all_rois = []
@@ -101,8 +97,9 @@ def buildComboBox():
 				analysisUI.traceComboBox.setCurrentIndex(i)
 
 	analysisUI.traceComboBox.updating = False
-	if len(analysisUI.all_rois) > 0:
-		indexChanged()
+	#if len(analysisUI.all_rois) > 0:
+	#	indexChanged()
+	analysisUI.traceComboBox.blockSignals(False)
 
 
 def comboBoxClicked(ev):
