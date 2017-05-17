@@ -38,10 +38,6 @@ class RectSelector(pg.ROI):
 		pg.ROI.setVisible(self, v)
 		if g.m.currentTrace:
 			self.traceLine = g.m.currentTrace.rois[0]['p1trace']
-			x, y = self.traceLine.getData()
-			pos = [max(x) * .1, min(y)]
-			self.setPos(pos)
-			self.setSize([max(x)* .9 - pos[0], max(y) - pos[1]])
 
 	def onTranslate(self):
 		if not self.traceLine:
@@ -62,6 +58,8 @@ class RectSelector(pg.ROI):
 	def redraw(self):
 		baseline = self.pos()[1]
 		x, y = self.getFrameTrace()
+		if x is None:
+			return
 		y -= baseline
 		ftrace = get_polyfit(x, y)
 		self.analyze_trace(x, y, ftrace)
@@ -86,7 +84,7 @@ class RectSelector(pg.ROI):
 
 	def getFrameTrace(self):
 		if not self.traceLine:
-			return None
+			return None, None
 		t = np.copy(self.traceLine.getData()[1])
 		x1, y1, x2, y2 = self.getFrameRect()
 		x1 = max(0, round(x1))
@@ -160,6 +158,3 @@ def getRiseFall(x, y):
 		pass
 		#print("Analysis Failed: %s" % traceback.format_exc())
 	return data
-
-traceRectROI = RectSelector([0, 0], [10, 10])
-traceRectROI.setVisible(False)
