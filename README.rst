@@ -1,4 +1,7 @@
-# GlobalAnalysisPlugin
+
+GlobalAnalysisPlugin
+====================
+
 Global Analysis plugin for FLIKA program. Fit user-drawn regions of interest to polynomials for rise-fall time calculation.
 
 .. image:: GlobalAnalysisSample.gif
@@ -12,6 +15,7 @@ Use the ROI selector to choose which ROI trace to fit.
 The Puff Selector drop down breifly scans the trace for peaks.
 
 Use the region of interest to select the puff to fit:
+
 - Slide the left and right boundaries to select frames
 - Use the bottom range to set the baseline value.
 - The fitted region will be plotted over the trace, with Rise/Fall times listed in the table
