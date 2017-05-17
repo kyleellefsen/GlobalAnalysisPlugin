@@ -1,6 +1,8 @@
 # GlobalAnalysisPlugin
 Global Analysis plugin for FLIKA program. Fit user-drawn regions of interest to polynomials for rise-fall time calculation.
 
+.. image:: GlobalAnalysisSample.gif
+
 Open the Global Analysis UI from the plugins menu, and plot the ROIs in the window you would like to analyze.
 
 Check the "Show Trace ROI" Checkbox to display an ROI within the trace window.  The region within that range will be 
