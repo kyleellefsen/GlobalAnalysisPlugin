@@ -32,7 +32,7 @@ class AnalysisUI(QtWidgets.QGroupBox):
 		self.prevPuffButton.clicked.connect(self.previousPuff)
 		
 		def saveLogData():
-			f = save_file_gui("Save Logged Ploynomial Fit Data", filetypes="*.txt")
+			f = save_file_gui("Save Logged Ploynomial Fit Data", filetypes="*.csv")
 			if f:
 				self.saveLoggedData(f)
 
@@ -49,14 +49,26 @@ class AnalysisUI(QtWidgets.QGroupBox):
 		
 	def saveLoggedData(self, fname):
 		with open(fname, 'w') as outf:
-			outf.write("Value\tFtrace Frame\tFtrace Y\n")
+			outf.write("Baseline,Peak,Delta Peak,Rise 20%,Rise 50%,Rise 80%,Rise 100%,Fall 80%,Fall 50%,Fall 20%,Peak Value\n")
 			outf.write(AnalysisUI.log_data)
 		AnalysisUI.log_data = ''
 
 	def logData(self):
-		for name, vals in self.traceRectROI.data.items():
-			AnalysisUI.log_data += "%s\t%s\n" % (name, '\t'.join([str(i) for i in vals]))
-		AnalysisUI.log_data += "\n"
+		d = self.traceRectROI.data
+		d_str = ''
+		d_str += str(d['Baseline'][0]) + ','
+		d_str += str(d['Peak'][0]) + ','
+		d_str += str(d['Delta Peak'][0]) + ','
+		d_str += str(d['Rise 20%'][0]) + ','
+		d_str += str(d['Rise 50%'][0]) + ','
+		d_str += str(d['Rise 80%'][0]) + ','
+		d_str += str(d['Rise 100%'][0]) + ','
+		d_str += str(d['Fall 80%'][0]) + ','
+		d_str += str(d['Fall 50%'][0]) + ','
+		d_str += str(d['Fall 20%'][0]) + ','
+		d_str += str(d['Rise 100%'][1])
+		d_str += '\n'
+		AnalysisUI.log_data += d_str
 
 	def nextROI(self):
 		self.buildComboBox()
